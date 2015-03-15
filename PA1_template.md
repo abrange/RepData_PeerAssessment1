@@ -1,14 +1,9 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-author: "Alvaro Brange"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
-```{r loadingdata, echo=TRUE, warning=F,message=F}
+
+```r
 library(dplyr)
 library(lattice)
 unzip(zipfile = "activity.zip",overwrite = T)
@@ -18,75 +13,116 @@ activity[,2]<-as.Date(activity[,2])
 
 ## What is mean total number of steps taken per day?
 #### Calculate the total number of steps taken per day
-```{r, echo=TRUE}
+
+```r
 activity=tbl_df(activity)
 act_by_day=group_by(activity,date)
 steps_by_day=summarise(act_by_day, sum(steps))
 names(steps_by_day)[2]="steps"
 ```
 #### Histogram of the total number of steps taken each day
-```{r, echo=TRUE}
-hist(steps_by_day$steps)
 
+```r
+hist(steps_by_day$steps)
 ```
+
+![](./PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
   
 #### Mean of the total number of steps taken per day
-```{r, echo=TRUE}
+
+```r
 mean(steps_by_day$steps,na.rm = T)
 ```
+
+```
+## [1] 10766.19
+```
 #### Media of the total number of steps taken per day
-```{r, echo=TRUE}
+
+```r
 median(steps_by_day$steps,na.rm = T)
 ```
 
+```
+## [1] 10765
+```
+
 ## What is the average daily activity pattern?
-```{r }
+
+```r
 steps_by_interval=activity[!is.na(activity$steps),] %>%group_by(interval) %>% summarize(mean(steps))
 ```
 #### Time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
-```{r}
+
+```r
 plot(steps_by_interval,type="l")
 ```
+
+![](./PA1_template_files/figure-html/unnamed-chunk-6-1.png) 
   
 #### Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
-```{r}
+
+```r
 max_interval<-steps_by_interval[which.max(as.matrix(steps_by_interval["mean(steps)"])),1]
 ```
-The 5-minute interval with maximum number of days is __`r max_interval`__
+The 5-minute interval with maximum number of days is __835__
 
 ## Imputing missing values
   
 #### Number of missing values on data set:
-```{r }
+
+```r
 sum(is.na(activity[,1]))
 ```
+
+```
+## [1] 2304
+```
 #### Filling missing values
-```{r}
+
+```r
 activity_no_missing<-inner_join(activity,steps_by_interval,by="interval")
 activity_no_missing[is.na(activity_no_missing$steps),2]<-activity_no_missing[is.na(activity_no_missing$steps),4]
 ```
 #### Creating a new dataset with missing values filled with average by interval
-```{r}
+
+```r
 activity_no_missing<-select(activity_no_missing, steps,date,interval)
 act_by_day_no_missing=group_by(activity_no_missing,date)
 steps_by_day_no_missing=summarise(act_by_day_no_missing, sum(steps))
 names(steps_by_day_no_missing)[2]="steps"
 ```
 #### Histogram of steps by day with missing values filled
-```{r}
+
+```r
 hist(steps_by_day_no_missing$steps)
 ```
+
+![](./PA1_template_files/figure-html/unnamed-chunk-11-1.png) 
   
 #### Mean and Median with missing values filled
-```{r}
+
+```r
 mean(steps_by_day_no_missing$steps)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
 median(steps_by_day_no_missing$steps)
+```
+
+```
+## [1] 10766.19
 ```
 
 ## Are there differences in activity patterns between weekdays and weekends?
 #### Create factor variables weekend and weekday.
 The new column is named period
-```{r }
+
+```r
 steps_by_interval=activity[!is.na(activity$steps),] %>%group_by(interval) %>% summarize(mean(steps))
 activity_no_missing<-inner_join(activity,steps_by_interval,by="interval")
 activity_no_missing[is.na(activity_no_missing$steps),2]<-activity_no_missing[is.na(activity_no_missing$steps),4]
@@ -103,6 +139,9 @@ steps_by_interval.weekday$period <-rep(x = "weekday",times = length(steps_by_int
 merged<-rbind(steps_by_interval.weekend, steps_by_interval.weekday)
 ```
 #### Time series plots of the 5-minute interval for weekdays and weekend.
-```{r}
+
+```r
 xyplot(steps~interval|period,type="l",data = merged,layout=c(1,2))
 ```
+
+![](./PA1_template_files/figure-html/unnamed-chunk-14-1.png) 
